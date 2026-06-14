@@ -1,0 +1,161 @@
+﻿<Window x:Class="FE_Berechnungen.Tragwerksberechnung.ModelldatenAnzeigen.TragwerksmodellVisualisieren"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Tragwerksmodell visualisieren" Height="810" Width="1289"
+        KeyDown="Window_KeyDown">
+    <ScrollViewer HorizontalScrollBarVisibility="Visible" Margin="0,0,0,0">
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Grid Row="0" Width="910" Height="40" HorizontalAlignment="Left" Margin="0,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
+                </Grid.RowDefinitions>
+
+                <Grid Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                      FlowDirection="LeftToRight" Background="LightCoral" Width="150">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    <TextBox Grid.Column="0" Margin="2,1,0,23" Padding="0,-3,0,0" Width="110" 
+                             HorizontalAlignment="Left">
+                        Modell berechnen
+                    </TextBox>
+                    <Button Grid.Column="0" IsDefault="False" HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Width="134" Click="OnBtnBerechnen_Click"
+                            Padding="10,-2,0,0" Height="18"
+                            Margin="0,20,0,0" VerticalContentAlignment="Center">
+                        statische Berechnung
+                    </Button>
+                </Grid>
+
+                <Grid Grid.Column="1" Grid.ColumnSpan="5" Height="40" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                      Background="GreenYellow">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+
+                    <TextBox Grid.Column="0" Margin="3,1,0,21" Padding="0,0,0,0"
+                             Grid.ColumnSpan="4">
+                        Modelldefinitionen neu definieren und vorhandene editieren
+                    </TextBox>
+                    <Button Grid.Column="0"   IsDefault="False" HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Width="90" Click="OnBtnModell_Click" Padding="0,-2,0,0" Height="17"
+                            Margin="0,22,0,0">
+                        Modell
+                    </Button>
+                    <Menu Grid.Column="1" HorizontalAlignment="Center" Width="70" FlowDirection="LeftToRight"
+                          Margin="0,22,0,0" Height="16" VerticalAlignment="Top">
+                        <MenuItem Header="Knoten" Height="21" Width="65"
+                                  Padding="5,0,0,0" VerticalAlignment="Center">
+                            <MenuItem Header="Knoten" HorizontalAlignment="Left" Height="20" Width="250"
+                                      Margin="0,0,0,0" Click="MenuKnotenNeu" />
+                            <MenuItem Header="äquidistantes Knotennetz" HorizontalAlignment="Left" Height="20" Width="250"
+                                      Margin="0,0,0,0" Click="MenuKnotenNetzÄquidistant" />
+                            <MenuItem Header="variables Knotennetz" HorizontalAlignment="Left" Height="20" Width="250"
+                                      Margin="0,0,0,0" Click="MenuKnotenNetzVariabel" />
+                        </MenuItem>
+                    </Menu>
+                    <Menu Grid.Column="2" HorizontalAlignment="Center" Width="70" FlowDirection="LeftToRight"
+                          Margin="0,22,0,0" Height="16" VerticalAlignment="Top">
+                        <MenuItem Header="Elemente" Height="21" Width="65"
+                                  Padding="5,0,0,0" VerticalAlignment="Center">
+                            <MenuItem Header="Element2D3" HorizontalAlignment="Left" Height="20" Width="250"
+                                      Margin="0,0,0,0" Click="MenuElement2D3Neu" />
+                            <Separator />
+                            <MenuItem Header="Querschnitt/Material" HorizontalAlignment="Left" Height="20" Width="250"
+                                      Margin="0,0,0,0" Click="MenuMaterialNeu" />
+                        </MenuItem>
+                    </Menu>
+                    <Menu Grid.Column="3" HorizontalAlignment="Center" Width="70" FlowDirection="LeftToRight"
+                          Margin="0,22,0,0" Height="16" VerticalAlignment="Top">
+                        <MenuItem Header="Lasten" Height="21" Width="65"
+                                  Padding="5,0,0,0" VerticalAlignment="Center">
+                            <MenuItem Header="Knotenlast" HorizontalAlignment="Left" Height="20" Width="250"
+                                      Margin="0,0,0,0" Click="MenuKnotenlastNeu" />
+                        </MenuItem>
+                    </Menu>
+                    <Button Grid.Column="4" IsDefault="False" HorizontalAlignment="Center"
+                            Width="60" Click="OnBtnLagerNeu_Click" Padding="0,-2,0,0"
+                            Margin="0,22,0,1">
+                        Lager
+                    </Button>
+                </Grid>
+
+                <Grid Grid.Column="6" Grid.ColumnSpan="4" Height="40" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                      Background="LightBlue">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    <TextBox Grid.Column="0" Margin="2,0,0,23" Padding="0,0,0,0" Width="169" Grid.ColumnSpan="3" HorizontalAlignment="Left">
+                        Modelldefinitionen darstellen
+                    </TextBox>
+                    <Button Grid.Column="0" IsDefault="False" HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Width="70" Click="OnBtnKnotenIDs_Click"
+                            Padding="0,0,0,0" Height="19"
+                            Margin="0,19,0,0" VerticalContentAlignment="Center">
+                        Knoten IDs
+                    </Button>
+                    <Button Grid.Column="1" IsDefault="False" HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Width="70" Click="OnBtnElementIDs_Click" Padding="0,0,0,0" Height="18"
+                            Margin="0,20,0,0" VerticalContentAlignment="Center">
+                        Element IDs
+                    </Button>
+                    <Button Grid.Column="2" IsDefault="False" HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Width="70" Click="OnBtnLasten_Click" Padding="0,0,0,0" Height="17"
+                            Margin="0,21,0,0" VerticalContentAlignment="Center">
+                        Lasten
+                    </Button>
+                    <Button Grid.Column="3" IsDefault="False" HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Width="70" Click="OnBtnLager_Click" Padding="0,-2,0,0" Height="18"
+                            Margin="0,21,0,0">
+                        Lager
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <Grid Row="1">
+                <Canvas x:Name="VisualElastizitätModel" Width="1270" Height="735" Margin="0,0,0,0"
+                        ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                        MouseLeftButtonDown="OnMouseLeftButtonDown">
+                    <Popup x:Name="MyPopup" Placement="MousePoint">
+                        <TextBlock x:Name="MyPopupText" Background="LightBlue" Foreground="Blue" Padding="10" />
+                    </Popup>
+                    <Ellipse Name="Pilot" Fill="Red" Width="10" Height="10"
+                             MouseDown="Pilot_MouseDown"
+                             MouseMove="Pilot_MouseMove"
+                             MouseUp="Pilot_MouseUp" />
+                </Canvas>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Window>
