@@ -1,0 +1,1098 @@
+﻿using FE_Berechnungen.Wärmeberechnung.Ergebnisse;
+using FE_Berechnungen.Wärmeberechnung.Modelldaten;
+using FE_Berechnungen.Wärmeberechnung.ModelldatenLesen;
+using Element2D3 = FE_Berechnungen.Wärmeberechnung.Modelldaten.Element2D3;
+using ElementKeys = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.ElementKeys;
+using ElementNeu = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.ElementNeu;
+using KnotenKeys = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.KnotenKeys;
+using KnotenlastNeu = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.KnotenlastNeu;
+using KnotenNetzÄquidistant = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.KnotenNetzÄquidistant;
+using KnotenNetzVariabel = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.KnotenNetzVariabel;
+using KnotenNeu = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.KnotenNeu;
+using LinienlastNeu = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.LinienlastNeu;
+using MaterialNeu = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.MaterialNeu;
+using ZeitintegrationNeu = FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.ZeitintegrationNeu;
+
+namespace FE_Berechnungen.Wärmeberechnung.ModelldatenAnzeigen;
+
+public partial class WärmemodellVisualisieren
+{
+    private EllipseGeometry _hitArea;
+    //alle gefundenen "Shapes" werden in dieser Liste gesammelt
+    private readonly List<Shape> _hitList = [];
+    //alle gefundenen "TextBlocks" werden in dieser Liste gesammelt
+    private readonly List<TextBlock> _hitTextBlock = [];
+    private bool _isDragging;
+    private Point _mittelpunkt;
+
+    private readonly FeModell _wärmeModell;
+    public readonly Darstellung Darstellung;
+    private bool _knotenAn = true, _elementeAn = true, _lastenAn = true, _randbedingungAn = true;
+    private KnotenNeu _knotenNeu;
+    private string _generatedId = "E";
+
+    public ZeitintegrationNeu ZeitintegrationNeu;
+    private ElementNeu _elementNeu;
+    public MaterialNeu MaterialNeu;
+    private KnotenlastNeu _knotenlastNeu;
+    private LinienlastNeu _linienlastNeu;
+    private ElementlastNeu _elementlastNeu;
+    private ZeitKnotenlastNeu _zeitKnotentemperaturNeu;
+    private ZeitElementlastNeu _zeitElementtemperaturNeu;
+    private RandbedingungNeu _randbedingungNeu;
+    private ZeitRandbedingungNeu _zeitRandbedingungNeu;
+    private ZeitKnotenAnfangstemperaturNeu _zeitKnotenAnfangstemperaturNeu;
+
+    public bool IsKnoten, IsElement, IsKnotenlast, IsLinienlast, IsElementlast, IsRandbedingung;
+    public bool IsAnfangsbedingung, IsZeitKnotentemperatur, IsZeitElementtemperatur, IsZeitRandtemperatur;
+    public KnotenKeys KnotenKeys;
+    public ElementKeys ElementKeys;
+
+    public WärmemodellVisualisieren(FeModell feWärmeModell)
+    {
+        Language = XmlLanguage.GetLanguage("de-DE");
+        InitializeComponent();
+        VisualWärmeModell.Children.Remove(Pilot);
+        Show();
+        VisualWärmeModell.Background = Brushes.Transparent;
+        if (feWärmeModell == null)
+        {
+            _ = MessageBox.Show("WärmeModell nicht gefunden", "Wärmeberechnung");
+            return;
+        }
+        _wärmeModell = feWärmeModell;
+
+        try
+        {
+            Darstellung = new Darstellung(feWärmeModell, VisualWärmeModell);
+            Darstellung.AlleElementeZeichnen();
+
+            // mit Knoten, Element Ids, Lasten und Randbedingungen
+            Darstellung.KnotenTexte();
+            Darstellung.AlleKnotenZeichnen();
+            Darstellung.ElementTexte();
+            Darstellung.KnotenlastenZeichnen();
+            Darstellung.LinienlastenZeichnen();
+            Darstellung.ElementlastenZeichnen();
+            Darstellung.RandbedingungenZeichnen();
+            Darstellung.AnfangsbedingungenZeichnen();
+        }
+        catch (ModellAusnahme e)
+        {
+            _ = MessageBox.Show(e.Message);
+        }
+    }
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        var name = StartFenster.Speicherort;
+        var dateiPfad = name + "\\FE Berechnungen\\Beispiele\\Sicherungsdatei.bak";
+        switch (e.Key)
+        {
+            case Key.S: // sichern der aktuellen Modelldefinition
+                var modellSchreiben = new WärmemodellSchreiben();
+                var zeilen = modellSchreiben.WärmedatenSchreiben(_wärmeModell);
+                zeilen.Insert(0, "Wärmeberechnung");
+                File.WriteAllLines(dateiPfad, zeilen);
+                break;
+            default:
+                return;
+        }
+        _ = MessageBox.Show("aktuelle Modelldaten gesichert in " + dateiPfad, "Wärmemodell visualisieren");
+    }
+
+    // stationäre Berechnung
+    private void OnBtnBerechnen_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (!_wärmeModell.Berechnet)
+            {
+                var modellBerechnung = new Berechnung(_wärmeModell);
+                modellBerechnung.BerechneSystemMatrix();
+                modellBerechnung.BerechneSystemVektor();
+                modellBerechnung.LöseGleichungen();
+                _wärmeModell.Berechnet = true;
+            }
+            var stationäreErgebnisse = new StationäreErgebnisseVisualisieren(_wärmeModell);
+            stationäreErgebnisse.Show();
+        }
+        catch (BerechnungAusnahme e2)
+        {
+            _ = MessageBox.Show(e2.Message);
+        }
+    }
+
+    // instationäre Berechnung
+    private void MenuInstationäreDaten(object sender, RoutedEventArgs e)
+    {
+        if (_wärmeModell.ZeitintegrationDaten && _wärmeModell != null)
+        {
+            var wärme = new InstationäreDatenAnzeigen(_wärmeModell);
+            wärme.Show();
+            _wärmeModell.ZeitintegrationBerechnet = false;
+        }
+        else
+        {
+            _ = MessageBox.Show("Modelldaten für Wärmeberechnung sind noch nicht spezifiziert", "Wärmeberechnung");
+        }
+    }
+    private void MenuInstationäreBerechnung(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_wärmeModell.ZeitintegrationDaten && _wärmeModell != null)
+            {
+                Berechnung modellBerechnung = null;
+                if (!_wärmeModell.Berechnet)
+                {
+                    modellBerechnung = new Berechnung(_wärmeModell);
+                    modellBerechnung.BerechneSystemMatrix();
+                    modellBerechnung.BerechneSystemVektor();
+                    modellBerechnung.LöseGleichungen();
+                    _wärmeModell.Berechnet = true;
+                }
+
+                modellBerechnung?.ZeitintegrationErsterOrdnung();
+                _wärmeModell.ZeitintegrationBerechnet = true;
+                _ = MessageBox.Show("Zeitintegration erfolgreich durchgeführt", "instationäre Wärmeberechnung");
+            }
+            else
+            {
+                _ = MessageBox.Show("Daten für Zeitintegration sind noch nicht spezifiziert", "Wärmeberechnung");
+                const double tmax = 0;
+                const double dt = 0;
+                const double alfa = 0;
+                if (_wärmeModell != null)
+                {
+                    _wärmeModell.Zeitintegration = new Zeitintegration(tmax, dt, alfa) { VonStationär = false };
+                    _wärmeModell.ZeitintegrationDaten = true;
+                    var wärme = new InstationäreDatenAnzeigen(_wärmeModell);
+                    wärme.Show();
+                }
+
+                _wärmeModell.ZeitintegrationBerechnet = false;
+            }
+        }
+        catch (BerechnungAusnahme e2)
+        {
+            _ = MessageBox.Show(e2.Message);
+        }
+    }
+    private void MenuInstationäreModellzuständeVisualisieren(object sender, RoutedEventArgs e)
+    {
+        if (_wärmeModell.ZeitintegrationBerechnet && _wärmeModell != null)
+        {
+            var modellzuständeVisualisieren = new InstationäreModellzuständeVisualisieren(_wärmeModell);
+            modellzuständeVisualisieren.Show();
+        }
+        else
+        {
+            _ = MessageBox.Show("Zeitintegration noch nicht ausgeführt!!", "Wärmeberechnung");
+        }
+    }
+    private void MenuTemperaturzeitverläufeVisualisieren(object sender, RoutedEventArgs e)
+    {
+        if (_wärmeModell.ZeitintegrationBerechnet && _wärmeModell != null)
+        {
+            var knotenzeitverläufeVisualisieren = new KnotenzeitverläufeVisualisieren(_wärmeModell);
+            knotenzeitverläufeVisualisieren.Show();
+        }
+        else
+        {
+            _ = MessageBox.Show("Zeitintegration noch nicht ausgeführt!!", "Wärmeberechnung");
+        }
+    }
+
+    // Modelldefinitionen neu definieren und vorhandene editieren
+    // Modell
+    private void OnBtnModellNeu_Click(object sender, RoutedEventArgs e)
+    {
+        var modellNeu = new ModellNeu(_wärmeModell)
+        {
+            Topmost = true,
+            ModellName = { Text = _wärmeModell.ModellId },
+            Dimension = { Text = _wärmeModell.Raumdimension.ToString() },
+            Ndof = { Text = _wärmeModell.AnzahlKnotenfreiheitsgrade.ToString() },
+            MinX = { Text = _wärmeModell.MinX.ToString(CultureInfo.CurrentCulture) },
+            MaxX = { Text = _wärmeModell.MaxX.ToString(CultureInfo.CurrentCulture) },
+            MinY = { Text = _wärmeModell.MinY.ToString(CultureInfo.CurrentCulture) },
+            MaxY = { Text = _wärmeModell.MaxY.ToString(CultureInfo.InvariantCulture) }
+        };
+        if (_wärmeModell.Raumdimension == 3)
+        {
+            modellNeu.MinZ.Text = _wärmeModell.MinZ.ToString(CultureInfo.InvariantCulture);
+            modellNeu.MaxZ.Text = _wärmeModell.MaxZ.ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            modellNeu.MinZ.Text = "";
+            modellNeu.MaxZ.Text = "";
+        }
+        modellNeu.Show();
+    }
+
+    // Knoten
+    private void MenuKnotenNeu(object sender, RoutedEventArgs e)
+    {
+        _knotenNeu = new KnotenNeu(_wärmeModell) { Topmost = true };
+        KnotenKeys = new KnotenKeys(_wärmeModell) { Topmost = true };
+        KnotenKeys.Show();
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuKnotenNetzÄquidistant(object sender, RoutedEventArgs e)
+    {
+        _ = new KnotenNetzÄquidistant(_wärmeModell) { Topmost = true };
+    }
+    private void MenuKnotenNetzVariabel(object sender, RoutedEventArgs e)
+    {
+        _ = new KnotenNetzVariabel(_wärmeModell) { Topmost = true };
+    }
+
+    // Elemente
+    private void MenuElementNeu(object sender, RoutedEventArgs e)
+    {
+        IsElement = true;
+        _elementNeu = new ElementNeu(_wärmeModell) { Topmost = true };
+        ElementKeys = new ElementKeys(_wärmeModell) { Topmost = true };
+        ElementKeys.Show();
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuMaterialNeu(object sender, RoutedEventArgs e)
+    {
+        MaterialNeu = new MaterialNeu(_wärmeModell) { Topmost = true };
+        _wärmeModell.Berechnet = false;
+    }
+
+    // Lasten
+    private void MenuKnotenlastNeu(object sender, RoutedEventArgs e)
+    {
+        IsKnotenlast = true;
+        _knotenlastNeu = new KnotenlastNeu(_wärmeModell) { Topmost = true };
+        _knotenlastNeu.AktuelleId = _knotenlastNeu.KnotenlastId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuLinienlastNeu(object sender, RoutedEventArgs e)
+    {
+        IsLinienlast = true;
+        _linienlastNeu = new LinienlastNeu(_wärmeModell) { Topmost = true };
+        _linienlastNeu.AktuelleId = _linienlastNeu.LinienlastId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuElementlastNeu(object sender, RoutedEventArgs e)
+    {
+        IsElementlast = true;
+        _elementlastNeu = new ElementlastNeu(_wärmeModell) { Topmost = true };
+        _elementlastNeu.AktuelleId = _elementlastNeu.ElementlastId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+
+    // Randbedingungen
+    private void OnBtnRandbedingungNeu_Click(object sender, RoutedEventArgs e)
+    {
+        IsRandbedingung = true;
+        _randbedingungNeu = new RandbedingungNeu(_wärmeModell) { Topmost = true };
+        _randbedingungNeu.AktuelleId = _randbedingungNeu.RandbedingungId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+
+    //  instationäre Berechnungen
+    private void MenuZeitintegrationNeu(object sender, RoutedEventArgs e)
+    {
+        ZeitintegrationNeu = new ZeitintegrationNeu(_wärmeModell) { Topmost = true };
+    }
+    private void MenuAnfangstemperaturNeu(object sender, RoutedEventArgs e)
+    {
+        IsAnfangsbedingung = true;
+        _wärmeModell.Zeitintegration.VonStationär = false;
+        _zeitKnotenAnfangstemperaturNeu = new ZeitKnotenAnfangstemperaturNeu(_wärmeModell) { Topmost = true };
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuZeitRandtemperaturNeu(object sender, RoutedEventArgs e)
+    {
+        IsZeitRandtemperatur = true;
+        _zeitRandbedingungNeu = new ZeitRandbedingungNeu(_wärmeModell) { Topmost = true };
+        _zeitRandbedingungNeu.AktuelleId = _zeitRandbedingungNeu.RandbedingungId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuZeitKnotentemperaturNeu(object sender, RoutedEventArgs e)
+    {
+        IsZeitKnotentemperatur = true;
+        _zeitKnotentemperaturNeu = new ZeitKnotenlastNeu(_wärmeModell) { Topmost = true };
+        _zeitKnotentemperaturNeu.AktuelleId = _zeitKnotentemperaturNeu.LastId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuZeitElementtemperaturNeu(object sender, RoutedEventArgs e)
+    {
+        IsZeitElementtemperatur = true;
+        _zeitElementtemperaturNeu = new ZeitElementlastNeu(_wärmeModell) { Topmost = true };
+        _zeitElementtemperaturNeu.AktuelleId = _zeitElementtemperaturNeu.LastId.Text;
+        _wärmeModell.Berechnet = false;
+    }
+    private void MenuZeitAnregungNeu(object sender, RoutedEventArgs e)
+    {
+        _ = new ZeitAnregungVisualisieren(_wärmeModell);
+    }
+
+    // Modelldefinitionen darstellen
+    private void OnBtnKnotenIDs_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_knotenAn)
+        {
+            Darstellung.KnotenTexte();
+            _knotenAn = true;
+        }
+        else
+        {
+            foreach (var id in Darstellung.KnotenIDs) VisualWärmeModell.Children.Remove(id);
+            _knotenAn = false;
+        }
+    }
+    private void OnBtnElementIDs_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_elementeAn)
+        {
+            Darstellung.ElementTexte();
+            _elementeAn = true;
+        }
+        else
+        {
+            foreach (var id in Darstellung.ElementIDs) VisualWärmeModell.Children.Remove(id);
+            _elementeAn = false;
+        }
+    }
+    private void OnBtnLasten_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_lastenAn)
+        {
+            Darstellung.KnotenlastenZeichnen();
+            Darstellung.LinienlastenZeichnen();
+            Darstellung.ElementlastenZeichnen();
+            _lastenAn = true;
+        }
+        else
+        {
+            foreach (var lastKnoten in Darstellung.LastKnoten) VisualWärmeModell.Children.Remove(lastKnoten);
+            foreach (var lastLinie in Darstellung.LastLinien) VisualWärmeModell.Children.Remove(lastLinie);
+            foreach (var lastElement in Darstellung.LastElemente) VisualWärmeModell.Children.Remove(lastElement);
+            _lastenAn = false;
+        }
+    }
+    private void OnBtnRandbedingung_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_randbedingungAn)
+        {
+            //Darstellung.AnfangsbedingungenEntfernen();
+            Darstellung.RandbedingungenZeichnen();
+            _randbedingungAn = true;
+        }
+        else
+        {
+            foreach (var randbedingung in Darstellung.RandKnoten)
+                VisualWärmeModell.Children.Remove(randbedingung);
+            _randbedingungAn = false;
+        }
+    }
+
+    // KnotenNeu setzt Pilotpunkt
+    // MouseDown rechte Taste "fängt" Pilotknoten, MouseMove folgt ihm, MouseUp setzt ihn neu
+    private void Pilot_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        Pilot.CaptureMouse();
+        _isDragging = true;
+    }
+    private void Pilot_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDragging) return;
+        var canvPosToWindow = VisualWärmeModell.TransformToAncestor(this).Transform(new Point(0, 0));
+
+        if (sender is not Ellipse knoten) return;
+        var upperlimit = canvPosToWindow.Y + knoten.Height / 2;
+        var lowerlimit = canvPosToWindow.Y + VisualWärmeModell.ActualHeight - knoten.Height / 2;
+
+        var leftlimit = canvPosToWindow.X + knoten.Width / 2;
+        var rightlimit = canvPosToWindow.X + VisualWärmeModell.ActualWidth - knoten.Width / 2;
+
+
+        var absmouseXpos = e.GetPosition(this).X;
+        var absmouseYpos = e.GetPosition(this).Y;
+
+        if (!(absmouseXpos > leftlimit) || !(absmouseXpos < rightlimit)
+                                        || !(absmouseYpos > upperlimit) || !(absmouseYpos < lowerlimit)) return;
+
+        _mittelpunkt = new Point(e.GetPosition(VisualWärmeModell).X, e.GetPosition(VisualWärmeModell).Y);
+
+        Canvas.SetLeft(knoten, _mittelpunkt.X - Pilot.Width / 2);
+        Canvas.SetTop(knoten, _mittelpunkt.Y - Pilot.Height / 2);
+
+        var koordinaten = Darstellung.TransformBildPunkt(_mittelpunkt);
+        _knotenNeu.X.Text = koordinaten[0].ToString("N2", CultureInfo.CurrentCulture);
+        _knotenNeu.Y.Text = koordinaten[1].ToString("N2", CultureInfo.CurrentCulture);
+    }
+    private void Pilot_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        Pilot.ReleaseMouseCapture();
+        _isDragging = false;
+    }
+    private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _hitList.Clear();
+        _hitTextBlock.Clear();
+        var hitPoint = e.GetPosition(VisualWärmeModell);
+        _hitArea = new EllipseGeometry(hitPoint, 1.0, 1.0);
+        VisualTreeHelper.HitTest(VisualWärmeModell, null, HitTestCallBack,
+            new GeometryHitTestParameters(_hitArea));
+
+        // click auf Canvas weder Text noch Shape --> neuer Knoten wird mit Zeiger platziert und bewegt
+        if (_hitList.Count == 0 && _hitTextBlock.Count == 0)
+        {
+            if (_knotenNeu == null) return;
+            _mittelpunkt = new Point(e.GetPosition(VisualWärmeModell).X, e.GetPosition(VisualWärmeModell).Y);
+            Canvas.SetLeft(Pilot, _mittelpunkt.X - Pilot.Width / 2);
+            Canvas.SetTop(Pilot, _mittelpunkt.Y - Pilot.Height / 2);
+            VisualWärmeModell.Children.Remove(Pilot);
+
+            var koordinaten = Darstellung.TransformBildPunkt(_mittelpunkt);
+            _knotenNeu.X.Text = koordinaten[0].ToString("N2", CultureInfo.CurrentCulture);
+            _knotenNeu.Y.Text = koordinaten[1].ToString("N2", CultureInfo.CurrentCulture);
+            return;
+        }
+
+        // click auf Textdarstellungen
+        foreach (var item in _hitTextBlock)
+        {
+            // Textdarstellung ist ein Knoten
+            if (_wärmeModell.Knoten.TryGetValue(item.Text, out var knoten))
+            {
+                IsKnoten = true;
+                KnotenClick(knoten);
+            }
+
+            // Textdarstellung ist Element
+            else if (_wärmeModell.Elemente.TryGetValue(item.Text, out var element))
+            {
+                // ElementId angeklickt bei der Definition einer neuen zeitabhängigen Elementlast
+                if (IsZeitElementtemperatur)
+                {
+                    _zeitElementtemperaturNeu.ElementId.Text = element.ElementId;
+                    _zeitElementtemperaturNeu.LastId.Text = "El" + element.ElementId;
+                    _zeitElementtemperaturNeu.Show();
+                    return;
+                }
+
+                ElementNeu(element);
+            }
+
+            // Textdarstellung ist eine Knotenlast
+            else if (_wärmeModell.Lasten.TryGetValue(item.Text, out var knotenlast))
+            {
+                _knotenlastNeu = new KnotenlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    KnotenlastId = { Text = knotenlast.LastId },
+                    KnotenId = { Text = knotenlast.KnotenId.ToString(CultureInfo.CurrentCulture) },
+                    Temperatur = { Text = knotenlast.Lastwerte[0].ToString(CultureInfo.CurrentCulture) }
+                };
+                IsKnotenlast = true;
+            }
+            // Textdarstellung ist eine Linienlast
+            else if (_wärmeModell.LinienLasten.TryGetValue(item.Text, out var linienlast))
+            {
+                _linienlastNeu = new LinienlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    LinienlastId = { Text = linienlast.LastId },
+                    StartknotenId = { Text = linienlast.ElementId.ToString(CultureInfo.CurrentCulture) },
+                    Start = { Text = linienlast.Lastwerte[0].ToString(CultureInfo.CurrentCulture) },
+                    EndknotenId = { Text = linienlast.Lastwerte[1].ToString(CultureInfo.CurrentCulture) },
+                    End = { Text = linienlast.Lastwerte[1].ToString(CultureInfo.CurrentCulture) },
+                };
+                IsLinienlast = true;
+            }
+            // Textdarstellung ist eine Elementlast
+            else if (_wärmeModell.ElementLasten.TryGetValue(item.Text, out var elementLast))
+            {
+                _elementlastNeu = new ElementlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    ElementlastId = { Text = elementLast.LastId },
+                    ElementId = { Text = elementLast.ElementId.ToString(CultureInfo.CurrentCulture) },
+                    Knoten1 = { Text = elementLast.Lastwerte[0].ToString(CultureInfo.CurrentCulture) },
+                    Knoten2 = { Text = elementLast.Lastwerte[1].ToString(CultureInfo.CurrentCulture) }
+                };
+
+                switch (elementLast.Lastwerte.Length)
+                {
+                    case 3:
+                        _elementlastNeu.Knoten3.Text = elementLast.Lastwerte[2].ToString(CultureInfo.CurrentCulture);
+                        break;
+                    case 4:
+                        _elementlastNeu.Knoten3.Text = elementLast.Lastwerte[2].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten4.Text = elementLast.Lastwerte[3].ToString(CultureInfo.CurrentCulture);
+                        break;
+                    case 5:
+                        _elementlastNeu.Knoten3.Text = elementLast.Lastwerte[2].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten4.Text = elementLast.Lastwerte[3].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten5.Text = elementLast.Lastwerte[4].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten6.Text = elementLast.Lastwerte[5].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten7.Text = elementLast.Lastwerte[6].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten8.Text = elementLast.Lastwerte[7].ToString(CultureInfo.CurrentCulture);
+                        break;
+                }
+                IsElementlast = true;
+            }
+
+            // Textdarstellung ist zeitabhängige Knotenlast
+            else if (_wärmeModell.ZeitabhängigeKnotenLasten.TryGetValue(item.Text, out var zeitKnotenlast))
+            {
+                if (IsZeitKnotentemperatur)
+                {
+                    if (zeitKnotenlast.Datei != "")
+                    {
+                        _zeitKnotentemperaturNeu.Datei.IsChecked = true;
+                        return;
+                    }
+
+                    switch (zeitKnotenlast.VariationsTyp)
+                    {
+                        case 1:
+                            _zeitKnotentemperaturNeu.Konstant.Text = zeitKnotenlast.KonstanteTemperatur.ToString("N2", CultureInfo.CurrentCulture);
+                            return;
+                        case 2:
+                            _zeitKnotentemperaturNeu.Amplitude.Text = zeitKnotenlast.Amplitude.ToString("G4", CultureInfo.CurrentCulture);
+                            _zeitKnotentemperaturNeu.Frequenz.Text = zeitKnotenlast.Frequenz.ToString("G4", CultureInfo.CurrentCulture);
+                            _zeitKnotentemperaturNeu.Winkel.Text = zeitKnotenlast.PhasenWinkel.ToString("G4", CultureInfo.CurrentCulture);
+                            return;
+                        case 3:
+                            var sb = new StringBuilder();
+                            sb.Append(zeitKnotenlast.Intervall[0].ToString("G2") + ";");
+                            sb.Append(zeitKnotenlast.Intervall[1].ToString("G2"));
+                            for (var i = 2; i < zeitKnotenlast.Intervall.Length; i += 2)
+                            {
+                                sb.Append('\t');
+                                sb.Append(zeitKnotenlast.Intervall[i].ToString("G2") + ";");
+                                sb.Append(zeitKnotenlast.Intervall[i + 1].ToString("G2"));
+                            }
+                            _zeitKnotentemperaturNeu.Linear.Text = sb.ToString();
+                            return;
+                    }
+                }
+                _zeitKnotentemperaturNeu = new ZeitKnotenlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    LastId = { Text = zeitKnotenlast.LastId },
+                    KnotenId = { Text = zeitKnotenlast.KnotenId.ToString(CultureInfo.CurrentCulture) }
+                };
+                switch (zeitKnotenlast.VariationsTyp)
+                {
+                    case 0:
+                        _zeitKnotentemperaturNeu.Datei.IsChecked = true;
+                        break;
+                    case 1:
+                        _zeitKnotentemperaturNeu.Konstant.Text = zeitKnotenlast.KonstanteTemperatur.ToString("g3");
+                        break;
+                    case 2:
+                        _zeitKnotentemperaturNeu.Konstant.Text = zeitKnotenlast.KonstanteTemperatur.ToString("g3");
+                        _zeitKnotentemperaturNeu.Amplitude.Text = zeitKnotenlast.Amplitude.ToString("g3");
+                        _zeitKnotentemperaturNeu.Frequenz.Text = zeitKnotenlast.Frequenz.ToString("g3");
+                        _zeitKnotentemperaturNeu.Winkel.Text = zeitKnotenlast.PhasenWinkel.ToString("g3");
+                        break;
+                    case 3:
+                        var sb = new StringBuilder();
+                        var intervall = zeitKnotenlast.Intervall;
+                        for (var i = 0; i < intervall.Length; i += 2)
+                        {
+                            sb.Append(intervall[i].ToString("N0"));
+                            sb.Append(';');
+                            sb.Append(intervall[i + 1].ToString("N0"));
+                            sb.Append(' ');
+                        }
+
+                        _zeitKnotentemperaturNeu.Linear.Text = sb.ToString();
+                        break;
+                }
+                IsZeitKnotentemperatur = true;
+            }
+            // Textdarstellung ist zeitabhängige Elementlast
+            else if (_wärmeModell.ZeitabhängigeElementLasten.TryGetValue(item.Uid, out var zeitElementlast))
+            {
+                if (IsZeitElementtemperatur)
+                {
+                    _zeitElementtemperaturNeu.P0.Text = zeitElementlast.P[0].ToString("G2");
+                    _zeitElementtemperaturNeu.P1.Text = zeitElementlast.P[1].ToString("G2");
+                    _zeitElementtemperaturNeu.P2.Text = zeitElementlast.P[2].ToString("G2");
+                    return;
+                }
+                _zeitElementtemperaturNeu = new ZeitElementlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    LastId = { Text = zeitElementlast.LastId },
+                    ElementId = { Text = zeitElementlast.ElementId },
+                    P0 = { Text = zeitElementlast.P[0].ToString("G2") },
+                    P1 = { Text = zeitElementlast.P[1].ToString("G2") }
+                };
+                switch (zeitElementlast.P.Length)
+                {
+                    case 3:
+                        _zeitElementtemperaturNeu.P2.Text = zeitElementlast.P[2].ToString("G2");
+                        break;
+                    case 4:
+                        _zeitElementtemperaturNeu.P2.Text = zeitElementlast.P[2].ToString("G2");
+                        _zeitElementtemperaturNeu.P3.Text = zeitElementlast.P[3].ToString("G2");
+                        break;
+                }
+                IsZeitElementtemperatur = true;
+            }
+
+            // Textdarstellung ist eine Randbedingung
+            else if (_wärmeModell.Randbedingungen.TryGetValue(item.Uid, out var randbedingung))
+            {
+                _randbedingungNeu = new RandbedingungNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    RandbedingungId = { Text = randbedingung.RandbedingungId },
+                    KnotenId = { Text = randbedingung.KnotenId.ToString(CultureInfo.CurrentCulture) },
+                    Temperatur = { Text = randbedingung.Vordefiniert[0].ToString("g3") }
+                };
+                IsRandbedingung = true;
+            }
+            // Textdarstellung ist eine Anfangstemperatur
+            else if (item.Uid == "A")
+            {
+                var aktuell = _wärmeModell.Zeitintegration.Anfangsbedingungen.FindIndex((a => a.KnotenId == item.Name));
+
+                if (aktuell < 0)
+                {
+                    _ = MessageBox.Show("Knoten Id für Anfangstemperatur konnte nicht gefunden werden", "Anfangstemperatur");
+                    return;
+                }
+                if (_wärmeModell.Zeitintegration == null)
+                {
+                    _ = MessageBox.Show("Zeitintegration noch nicht definiert", "neue Anfangstemperatur");
+                    return;
+                }
+
+                _zeitKnotenAnfangstemperaturNeu = new ZeitKnotenAnfangstemperaturNeu(_wärmeModell, aktuell + 1, true) { Topmost = true };
+                IsAnfangsbedingung = true;
+            }
+            // Textdarstellung ist eine zeitabhängige Randtemperatur
+            else if (_wärmeModell.ZeitabhängigeRandbedingung.TryGetValue(item.Text, out var zeitRandtemperatur))
+            {
+                if (IsZeitRandtemperatur)
+                {
+                    //if (zeitRandtemperatur.Datei)
+                    //{
+                    //    _zeitRandbedingungNeu.Datei.IsChecked = true;
+                    //    return;
+                    //}
+
+                    switch (zeitRandtemperatur.VariationsTyp)
+                    {
+                        case 1:
+                            _zeitRandbedingungNeu.Konstant.Text =
+                                zeitRandtemperatur.KonstanteTemperatur.ToString("N2", CultureInfo.CurrentCulture);
+                            return;
+                        case 2:
+                            _zeitRandbedingungNeu.Amplitude.Text =
+                                zeitRandtemperatur.Amplitude.ToString("G4", CultureInfo.CurrentCulture);
+                            _zeitRandbedingungNeu.Frequenz.Text =
+                                zeitRandtemperatur.Frequenz.ToString("G4", CultureInfo.CurrentCulture);
+                            _zeitRandbedingungNeu.Winkel.Text =
+                                zeitRandtemperatur.PhasenWinkel.ToString("G4", CultureInfo.CurrentCulture);
+                            return;
+                        case 3:
+                            {
+                                var sb = new StringBuilder();
+                                sb.Append(zeitRandtemperatur.Intervall[0].ToString("G2") + ";");
+                                sb.Append(zeitRandtemperatur.Intervall[1].ToString("G2"));
+                                for (var i = 2; i < zeitRandtemperatur.Intervall.Length; i += 2)
+                                {
+                                    sb.Append('\t');
+                                    sb.Append(zeitRandtemperatur.Intervall[i].ToString("G2") + ";");
+                                    sb.Append(zeitRandtemperatur.Intervall[i + 1].ToString("G2"));
+                                }
+                                _zeitRandbedingungNeu.Linear.Text = sb.ToString();
+                                return;
+                            }
+                    }
+                }
+                ZeitRandtemperaturNeu(zeitRandtemperatur);
+            }
+            return;
+        }
+        // click auf Shape Darstellungen
+        // nur neu, falls nicht im Benutzerdialog aktiviert
+        foreach (var item in _hitList
+                     .TakeWhile(_ => !IsKnoten && !IsElement && !IsKnotenlast && !IsLinienlast && !IsElementlast)
+                     .Where(item => item.Name != null))
+        {
+            // Elemente
+            if (_wärmeModell.Elemente.TryGetValue(item.Name, out var element))
+                ElementNeu(element);
+
+            // Lasten
+            else if (_wärmeModell.Lasten.TryGetValue(item.Name, out var knotenlast))
+            {
+                _knotenlastNeu = new KnotenlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    KnotenlastId = { Text = knotenlast.LastId },
+                    KnotenId = { Text = knotenlast.KnotenId.ToString(CultureInfo.CurrentCulture) },
+                    Temperatur = { Text = knotenlast.Lastwerte[0].ToString(CultureInfo.CurrentCulture) }
+                };
+                IsKnotenlast = true;
+            }
+            else if (_wärmeModell.LinienLasten.TryGetValue(item.Name, out var linienlast))
+            {
+                _linienlastNeu = new LinienlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    LinienlastId = { Text = linienlast.LastId },
+                    StartknotenId = { Text = linienlast.ElementId.ToString(CultureInfo.CurrentCulture) },
+                    Start = { Text = linienlast.Lastwerte[0].ToString(CultureInfo.CurrentCulture) },
+                    EndknotenId = { Text = linienlast.Lastwerte[1].ToString(CultureInfo.CurrentCulture) },
+                    End = { Text = linienlast.Lastwerte[1].ToString(CultureInfo.CurrentCulture) },
+                };
+                IsLinienlast = true;
+            }
+            else if (_wärmeModell.ElementLasten.TryGetValue(item.Name, out var elementLast))
+            {
+                _elementlastNeu = new ElementlastNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    ElementlastId = { Text = elementLast.LastId },
+                    ElementId = { Text = elementLast.ElementId.ToString(CultureInfo.CurrentCulture) },
+                    Knoten1 = { Text = elementLast.Lastwerte[0].ToString(CultureInfo.CurrentCulture) },
+                    Knoten2 = { Text = elementLast.Lastwerte[1].ToString(CultureInfo.CurrentCulture) },
+                };
+
+                switch (elementLast.Lastwerte.Length)
+                {
+                    case 3:
+                        _elementlastNeu.Knoten3.Text = elementLast.Lastwerte[2].ToString(CultureInfo.CurrentCulture);
+                        break;
+                    case 4:
+                        _elementlastNeu.Knoten3.Text = elementLast.Lastwerte[2].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten4.Text = elementLast.Lastwerte[3].ToString(CultureInfo.CurrentCulture);
+                        break;
+                    case 5:
+                        _elementlastNeu.Knoten3.Text = elementLast.Lastwerte[2].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten4.Text = elementLast.Lastwerte[3].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten5.Text = elementLast.Lastwerte[4].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten6.Text = elementLast.Lastwerte[5].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten7.Text = elementLast.Lastwerte[6].ToString(CultureInfo.CurrentCulture);
+                        _elementlastNeu.Knoten8.Text = elementLast.Lastwerte[7].ToString(CultureInfo.CurrentCulture);
+                        break;
+                }
+                IsElementlast = true;
+            }
+
+            // Lager
+            else if (_wärmeModell.Randbedingungen.TryGetValue(item.Name, out var randbedingung))
+            {
+                _randbedingungNeu = new RandbedingungNeu(_wärmeModell)
+                {
+                    Topmost = true,
+                    RandbedingungId = { Text = randbedingung.RandbedingungId },
+                    KnotenId = { Text = randbedingung.KnotenId.ToString(CultureInfo.CurrentCulture) },
+                    Temperatur = { Text = randbedingung.Vordefiniert[0].ToString("g3") }
+                };
+                IsRandbedingung = true;
+            }
+        }
+    }
+
+    public void KnotenClick(Knoten knoten)
+    {
+        // Knotentexte angeklickt bei Definition eines neuen Elementes
+        if (IsElement)
+        {
+            if (_elementNeu.Knoten1Id.Text == string.Empty)
+            {
+                _generatedId += knoten.Id;
+                _elementNeu.Knoten1Id.Text = knoten.Id; _elementNeu.ElementId.Text = _generatedId;
+            }
+            else if (_elementNeu.Knoten2Id.Text == string.Empty)
+            {
+                _generatedId += knoten.Id;
+                _elementNeu.Knoten2Id.Text = knoten.Id; _elementNeu.ElementId.Text = _generatedId;
+            }
+            else if (_elementNeu.Knoten3Id.Text == string.Empty)
+            {
+                _generatedId += knoten.Id;
+                _elementNeu.Knoten3Id.Text = knoten.Id; _elementNeu.ElementId.Text = _generatedId;
+            }
+            else if (_elementNeu.Knoten4Id.Text == string.Empty)
+            {
+                _generatedId += knoten.Id;
+                _elementNeu.Knoten4Id.Text = knoten.Id; _elementNeu.ElementId.Text = _generatedId;
+            }
+            else if (_elementNeu.Knoten5Id.Text == string.Empty) _elementNeu.Knoten5Id.Text = knoten.Id;
+            else if (_elementNeu.Knoten6Id.Text == string.Empty) _elementNeu.Knoten6Id.Text = knoten.Id;
+            else if (_elementNeu.Knoten7Id.Text == string.Empty) _elementNeu.Knoten7Id.Text = knoten.Id;
+            else if (_elementNeu.Knoten8Id.Text == string.Empty)
+            {
+                _generatedId += knoten.Id;
+                _elementNeu.Knoten8Id.Text = knoten.Id; _elementNeu.ElementId.Text = _generatedId;
+            }
+
+            _elementNeu.Show();
+            return;
+        }
+
+        // Knotentext angeklickt bei Definition einer neuen Knotenlast
+        else if (IsKnotenlast)
+        {
+            _knotenlastNeu.KnotenId.Text = knoten.Id;
+            _knotenlastNeu.KnotenlastId.Text = "Kl" + knoten.Id;
+            _knotenlastNeu.Show();
+            return;
+        }
+        // Knotentext angeklickt bei Definition einer neuen Linienlast
+        else if (IsLinienlast)
+        {
+            if (_linienlastNeu.LinienlastId.Text == string.Empty) _linienlastNeu.LinienlastId.Text = "Ll";
+            if (_linienlastNeu.StartknotenId.Text == string.Empty)
+            {
+                _linienlastNeu.StartknotenId.Text = knoten.Id;
+                _linienlastNeu.LinienlastId.Text = "Ll" + knoten.Id;
+            }
+            else if (_linienlastNeu.EndknotenId.Text == string.Empty)
+            {
+                _linienlastNeu.EndknotenId.Text = knoten.Id;
+                _linienlastNeu.LinienlastId.Text += knoten.Id;
+            }
+
+            _linienlastNeu.Show();
+            return;
+        }
+        // Knotentext angeklickt bei Definition einer neuen Elementlast
+        else if (IsElementlast)
+        {
+            _ = MessageBox.Show("Knoteneingabe ungültig bei Definition einer neuen Elementlast", "neue Elementlast");
+            return;
+        }
+
+        // Knotentext angeklickt bei Definition eines neuen Lagers
+        else if (IsRandbedingung)
+        {
+            _randbedingungNeu.KnotenId.Text = knoten.Id;
+            if (_randbedingungNeu.RandbedingungId.Text == string.Empty) _randbedingungNeu.RandbedingungId.Text = "R" + knoten.Id;
+            _randbedingungNeu.Show();
+            return;
+        }
+
+        // Knotentext angeklickt bei Definition einer neuen Anfangstemperatur
+        else if (IsAnfangsbedingung)
+        {
+            _zeitKnotenAnfangstemperaturNeu.KnotenId.Text = knoten.Id;
+            _zeitKnotenAnfangstemperaturNeu.Show();
+            return;
+        }
+
+        // Knotentext angeklickt bei Definition einer neuen zeitabhängigen Knotenlast
+        else if (IsZeitKnotentemperatur)
+        {
+            _zeitKnotentemperaturNeu.KnotenId.Text = knoten.Id;
+            if (_zeitKnotentemperaturNeu.LastId.Text == string.Empty) _zeitKnotentemperaturNeu.LastId.Text = "zKl" + knoten.Id;
+            _zeitKnotentemperaturNeu.Show();
+            return;
+        }
+        // Knotentext angeklickt bei Definition einer neuen zeitabhängigen Randtemperatur
+        else if (IsZeitRandtemperatur)
+        {
+            _zeitRandbedingungNeu.KnotenId.Text = knoten.Id;
+            if (_zeitRandbedingungNeu.RandbedingungId.Text == string.Empty) _zeitRandbedingungNeu.RandbedingungId.Text = "zR" + knoten.Id;
+            _zeitRandbedingungNeu.Show();
+            return;
+        }
+
+        // Knotentext angeklickt, um vorhandenen Knoten zu editieren
+        KnotenEdit(knoten);
+    }
+    public void KnotenEdit(Knoten knoten)
+    {
+        _knotenNeu = new KnotenNeu(_wärmeModell)
+        {
+            Topmost = true,
+            KnotenId = { Text = knoten.Id },
+            X = { Text = knoten.Koordinaten[0].ToString("N2", CultureInfo.CurrentCulture) },
+            Y = { Text = knoten.Koordinaten[1].ToString("N2", CultureInfo.CurrentCulture) }
+        };
+
+        _mittelpunkt = new Point(knoten.Koordinaten[0] * Darstellung.Auflösung + Darstellung.RandLinks,
+            (-knoten.Koordinaten[1] + Darstellung.MaxY) * Darstellung.Auflösung + Darstellung.RandOben);
+        Canvas.SetLeft(Pilot, _mittelpunkt.X - Pilot.Width / 2);
+        Canvas.SetTop(Pilot, _mittelpunkt.Y - Pilot.Height / 2);
+        VisualWärmeModell.Children.Add(Pilot);
+    }
+    private void ElementNeu(AbstraktElement element)
+    {
+        // anderer Elementtext angeklickt beim Erstellen eines neuen Elementes
+        // Material- und Querschnitteigenschaften werden übernommen
+        if (IsElement)
+        {
+            _elementNeu.MaterialId.Text = element.ElementMaterialId;
+            _elementNeu.Show();
+            IsElement = false;
+            return;
+        }
+
+        // Elementtext angeklickt bei Definition einer neuen Linienlast
+        if (IsLinienlast)
+        {
+            _linienlastNeu.LinienlastId.Text = "Ll" + element.KnotenIds[0] + element.KnotenIds[1];
+            _linienlastNeu.StartknotenId.Text = element.KnotenIds[0];
+            _linienlastNeu.EndknotenId.Text = element.KnotenIds[1];
+            _linienlastNeu.Show();
+            return;
+        }
+        // Elementtext angeklickt bei Definition einer neuen Elementlast
+        if (IsElementlast)
+        {
+            _elementlastNeu.ElementId.Text = element.ElementId;
+            _elementlastNeu.ElementlastId.Text = "El" + element.ElementId;
+            _elementlastNeu.Show();
+            return;
+        }
+
+        // Elementeigenschaften können editiert werden
+        _elementNeu = element switch
+        {
+            Element2D2 => new ElementNeu(_wärmeModell)
+            {
+                Topmost = true,
+                Element2D2 = { IsChecked = true },
+                Element2D3 = { IsChecked = false },
+                Element2D4 = { IsChecked = false },
+                Element3D8 = { IsChecked = false },
+                ElementId = { Text = element.ElementId },
+                Knoten1Id = { Text = element.KnotenIds[0] },
+                Knoten2Id = { Text = element.KnotenIds[1] },
+                MaterialId = { Text = element.ElementMaterialId }
+            },
+            Element2D3 => new ElementNeu(_wärmeModell)
+            {
+                Topmost = true,
+                Element2D2 = { IsChecked = false },
+                Element2D3 = { IsChecked = true },
+                Element2D4 = { IsChecked = false },
+                Element3D8 = { IsChecked = false },
+                ElementId = { Text = element.ElementId },
+                Knoten1Id = { Text = element.KnotenIds[0] },
+                Knoten2Id = { Text = element.KnotenIds[1] },
+                Knoten3Id = { Text = element.KnotenIds[2] },
+                MaterialId = { Text = element.ElementMaterialId }
+            },
+            Element2D4 => new ElementNeu(_wärmeModell)
+            {
+                Topmost = true,
+                Element2D2 = { IsChecked = false },
+                Element2D3 = { IsChecked = false },
+                Element2D4 = { IsChecked = true },
+                Element3D8 = { IsChecked = false },
+                ElementId = { Text = element.ElementId },
+                Knoten1Id = { Text = element.KnotenIds[0] },
+                Knoten2Id = { Text = element.KnotenIds[1] },
+                Knoten3Id = { Text = element.KnotenIds[2] },
+                Knoten4Id = { Text = element.KnotenIds[3] },
+                MaterialId = { Text = element.ElementMaterialId }
+            },
+            Element3D8 => new ElementNeu(_wärmeModell)
+            {
+                Topmost = true,
+                Element2D2 = { IsChecked = false },
+                Element2D3 = { IsChecked = false },
+                Element2D4 = { IsChecked = false },
+                Element3D8 = { IsChecked = true },
+                ElementId = { Text = element.ElementId },
+                Knoten1Id = { Text = element.KnotenIds[0] },
+                Knoten2Id = { Text = element.KnotenIds[1] },
+                Knoten3Id = { Text = element.KnotenIds[2] },
+                Knoten4Id = { Text = element.KnotenIds[3] },
+                Knoten5Id = { Text = element.KnotenIds[4] },
+                Knoten6Id = { Text = element.KnotenIds[5] },
+                Knoten7Id = { Text = element.KnotenIds[6] },
+                Knoten8Id = { Text = element.KnotenIds[7] },
+                MaterialId = { Text = element.ElementMaterialId }
+            },
+            _ => _elementNeu
+        };
+        IsElement = true;
+    }
+    private void ZeitRandtemperaturNeu(AbstraktZeitabhängigeRandbedingung zeitRandtemperatur)
+    {
+        _zeitRandbedingungNeu = new ZeitRandbedingungNeu(_wärmeModell)
+        {
+            Topmost = true,
+            RandbedingungId = { Text = zeitRandtemperatur.RandbedingungId },
+            KnotenId = { Text = zeitRandtemperatur.KnotenId.ToString(CultureInfo.CurrentCulture) },
+        };
+        switch (zeitRandtemperatur.VariationsTyp)
+        {
+            case 0:
+                _zeitRandbedingungNeu.Datei.IsChecked = true;
+                break;
+            case 1:
+                _zeitRandbedingungNeu.Konstant.Text = zeitRandtemperatur.KonstanteTemperatur.ToString("g3");
+                break;
+            case 2:
+                _zeitRandbedingungNeu.Konstant.Text = zeitRandtemperatur.KonstanteTemperatur.ToString("g3");
+                _zeitRandbedingungNeu.Amplitude.Text = zeitRandtemperatur.Amplitude.ToString("g3");
+                _zeitRandbedingungNeu.Frequenz.Text = zeitRandtemperatur.Frequenz.ToString("g3");
+                _zeitRandbedingungNeu.Winkel.Text = zeitRandtemperatur.PhasenWinkel.ToString("g3");
+                break;
+            case 3:
+                var sb = new StringBuilder();
+                var intervall = zeitRandtemperatur.Intervall;
+                for (var i = 0; i < intervall.Length; i += 2)
+                {
+                    sb.Append(intervall[i].ToString("N0"));
+                    sb.Append(';');
+                    sb.Append(intervall[i + 1].ToString("N0"));
+                    sb.Append(' ');
+                }
+
+                _zeitRandbedingungNeu.Linear.Text = sb.ToString();
+                break;
+        }
+        IsZeitRandtemperatur = true;
+    }
+
+    private HitTestResultBehavior HitTestCallBack(HitTestResult result)
+    {
+        var intersectionDetail = ((GeometryHitTestResult)result).IntersectionDetail;
+
+        switch (intersectionDetail)
+        {
+            case IntersectionDetail.Empty:
+                return HitTestResultBehavior.Continue;
+            case IntersectionDetail.FullyContains:
+                switch (result.VisualHit)
+                {
+                    case Shape hit:
+                        _hitList.Add(hit);
+                        break;
+                    case TextBlock hit:
+                        _hitTextBlock.Add(hit);
+                        break;
+                }
+
+                return HitTestResultBehavior.Continue;
+            case IntersectionDetail.FullyInside:
+                return HitTestResultBehavior.Continue;
+            case IntersectionDetail.Intersects:
+                switch (result.VisualHit)
+                {
+                    case Shape hit:
+                        _hitList.Add(hit);
+                        break;
+                }
+
+                return HitTestResultBehavior.Continue;
+            case IntersectionDetail.NotCalculated:
+                return HitTestResultBehavior.Continue;
+            default:
+                return HitTestResultBehavior.Stop;
+        }
+    }
+}

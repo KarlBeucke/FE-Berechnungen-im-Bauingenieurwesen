@@ -1,0 +1,48 @@
+﻿<Window x:Class="FE_Berechnungen.Wärmeberechnung.ModelldatenLesen.ElementKeys"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="vorhandene Element IDs" Height="220" Width="370">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="370" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+        <ListView Margin="10,10,10,10" Name="ElementKey" 
+                  d:DataContext="{d:DesignData modell}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="ID" Width="30"
+                                    DisplayMemberBinding="{Binding ElementId}" />
+                    <GridViewColumn Header="Material" Width="50"
+                                    DisplayMemberBinding="{Binding ElementMaterialId}" />
+                    <GridViewColumn Header="k1" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[0]}" />
+                    <GridViewColumn Header="k2" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[1]}" />
+                    <GridViewColumn Header="k3" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[2]}" />
+                    <GridViewColumn Header="k4" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[3]}" />
+                    <GridViewColumn Header="k5" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[4]}" />
+                    <GridViewColumn Header="k6" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[5]}" />
+                    <GridViewColumn Header="k7" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[6]}" />
+                    <GridViewColumn Header="k8" Width="30"
+                                    DisplayMemberBinding="{Binding KnotenIds[7]}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Height="18" Margin="259,0,24,10" VerticalAlignment="Bottom" 
+                Click="BtnDialogCancel_Click" Grid.Row="1">
+            _schließen
+        </Button>
+    </Grid>
+</Window>
