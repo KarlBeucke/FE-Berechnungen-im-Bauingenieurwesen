@@ -1,0 +1,34 @@
+﻿namespace FE_Berechnungen.Stabwerksberechnung.Modelldaten;
+
+public class Material : AbstraktMaterial
+{
+    public Material(double emodulus, double poisson, double mass)
+    {
+        MaterialWerte = new double[3];
+        MaterialWerte[0] = emodulus;
+        MaterialWerte[1] = poisson;
+        MaterialWerte[2] = mass;
+    }
+
+    public Material(double emodulus, double poisson)
+    {
+        MaterialWerte = new double[3];
+        MaterialWerte[0] = emodulus;
+        MaterialWerte[1] = poisson;
+    }
+
+    public Material(double emodulus)
+    {
+        MaterialWerte = new double[3];
+        MaterialWerte[0] = emodulus;
+    }
+
+    public Material(bool feder, double fkx, double fky, double fkphi)
+    {
+        Feder = feder;
+        MaterialWerte = new double[3];
+        MaterialWerte[0] = fkx;
+        MaterialWerte[1] = fky;
+        MaterialWerte[2] = fkphi;
+    }
+}
