@@ -1,0 +1,108 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>FE_Berechnungen</RootNamespace>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>C:\Users\karlb\Documents\FE-Berechnungen\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
+    <WebPage>publish.htm</WebPage>
+    <ApplicationRevision>46</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <LangVersion>14</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>BF76D6371514C594ADD2B1C10517D8DBDE30F29A</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>FE Berechnungen_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="FE Bibliothek\Modell\**" />
+    <EmbeddedResource Remove="FE Bibliothek\Modell\**" />
+    <None Remove="FE Bibliothek\Modell\**" />
+    <Page Remove="FE Bibliothek\Modell\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 und x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="FE Bibliothek\FEBibliothek.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Ressourcen\Halbraum.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Ressourcen\Durchlaufträger.jpg" />
+    <Resource Include="Ressourcen\Tragwerk.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Ressourcen\Wandecke.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="FE Bibliothek\AssemblyInfo.cs" />
+    <Compile Remove="FE Bibliothek\Gleichungslöser\ProfillöserStatus.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\Input\InputFile.g.i.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\Input\Modelleingabe.g.i.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\Input\UserControl1.g.i.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs" />
+    <Compile Remove="FE Bibliothek\obj\Debug\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs" />
+    <Compile Remove="FE Bibliothek\obj\Release\.NETFramework,Version=v4.6.1.AssemblyAttributes.cs" />
+    <Compile Remove="FE Bibliothek\obj\Release\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="FE Bibliothek\Properties\AssemblyInfo.cs" />
+    <Compile Remove="FE Bibliothek\Werkzeuge\Algebraische Ausnahme.cs" />
+    <Compile Remove="FE Bibliothek\Werkzeuge\FEGeometrie.cs" />
+    <Compile Remove="FE Bibliothek\Werkzeuge\MatrizenAlgebra.cs" />
+    <Compile Remove="FE Bibliothek\Zeitlöser\Eigenlöser.cs" />
+    <Compile Remove="FE Bibliothek\Zeitlöser\Zeitintegration1OrdnungStatus.cs" />
+    <Compile Remove="FE Bibliothek\Zeitlöser\Zeitintegration2OrdnungStatus.cs" />
+    <Compile Remove="Wärmeberechnung\Ergebnisse\Knotenauswahl.xaml.cs" />
+    <None Remove="Ressourcen\Tragwerk.jpg" />
+    <Page Remove="Wärmeberechnung\Ergebnisse\Knotenauswahl.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Beispiele\Tragwerksberechnung\Projekt\" />
+    <Folder Include="packages\" />
+  </ItemGroup>
+</Project>

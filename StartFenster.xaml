@@ -1,0 +1,164 @@
+﻿<Window x:Class="FE_Berechnungen.StartFenster"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="FE Berechnungen Stand Juni 2026                                © Prof. Karl Beucke"
+        Height="300" Width="750" KeyDown="Window_KeyDown">
+    <Grid Margin="0,0,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="270" />
+            <ColumnDefinition Width="170" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="260" />
+        </Grid.RowDefinitions>
+        <Menu HorizontalAlignment="Center" Height="30"
+              VerticalAlignment="Center" Width="200" FlowDirection="LeftToRight" Background="LightGreen" >
+            <MenuItem Header="      Stabtragwerke" Height="30" Width="138" FontWeight="Bold">
+                <MenuItem.Icon>
+                    <Image Source="/Ressourcen/Tragwerk.jpg" VerticalAlignment="Center" Margin="0,-5,-20,-5" Height="34" />
+                </MenuItem.Icon>
+                <MenuItem Header="Stabwerksdaten einlesen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerksdatenEinlesen" />
+                <MenuItem Header="Stabwerksdaten editieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerksdatenEditieren" />
+                <MenuItem Header="Stabwerksdaten sichern" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerksdatenSichern" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="Stabwerksdaten anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerksdatenAnzeigen" />
+                <MenuItem Header="Stabwerksdaten visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerksdatenVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="statische Berechnung" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerksdatenBerechnen" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="statische Ergebnisse anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkStatikErgebnisseAnzeigen" />
+                <MenuItem Header="statische Ergebnisse visualisieren" HorizontalAlignment="Left" Height="20"
+                          Width="300" Margin="0,0,0,0" Click="StabwerkStatikErgebnisseVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="dynamische Daten anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkDynamischeDaten" />
+                <MenuItem Header="Anregung visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkAnregungVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="Eigenlösung berechnen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkEigenlösungBerechnen" />
+                <MenuItem Header="Eigenlösung anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkEigenlösungAnzeigen" />
+                <MenuItem Header="Eigenlösung visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkEigenlösungVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="dynamische Berechnung" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="StabwerkDynamischeBerechnung" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="dynamische Ergebnisse anzeigen" HorizontalAlignment="Left" Height="20" Width="271"
+                          Margin="0,0,0,0" Click="StabwerkDynamischeErgebnisseAnzeigen" />
+                <MenuItem Header="zeitabhängige Modellzustände visualisieren" HorizontalAlignment="Left" Height="20"
+                          Width="350" Margin="0,0,0,0" Click="StabwerkDynamischeModellzuständeVisualisieren" />
+                <MenuItem Header="Knotenzeitverläufe visualisieren" HorizontalAlignment="Left" Height="20" Width="300"
+                          Margin="0,0,0,0" Click="StabwerkKnotenzeitverläufeTragwerkVisualisieren" />
+            </MenuItem>
+            <Button Height="27" Width="47" VerticalAlignment="Center" HorizontalAlignment="Left" Background="LawnGreen"
+                    Click="StabwerksdatenEinlesen">
+                <TextBlock FontWeight="Bold" HorizontalAlignment="Left" Height="21">neu</TextBlock>
+            </Button>
+        </Menu>
+        <Menu Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Height="30"
+              VerticalAlignment="Center" Width="270" FlowDirection="LeftToRight" Background="LightBlue" >
+            <MenuItem Header="      Flächen-, Raumtragwerke" Height="30" Width="204" FontWeight="Bold"
+                      HorizontalAlignment="Left">
+                <MenuItem.Icon>
+                    <Image Source="/Ressourcen/Halbraum.jpg" VerticalAlignment="Center" Margin="0,-5,-20,-5" Height="34" />
+                </MenuItem.Icon>
+                <MenuItem Header="Tragwerksdaten einlesen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="TragwerksdatenEinlesen" />
+                <MenuItem Header="Tragwerksdaten editieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="TragwerksdatenEditieren" />
+                <MenuItem Header="Tragwerksdaten sichern" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="TragwerksdatenSichern" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="Tragwerksdaten anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="TragwerksdatenAnzeigen" />
+                <MenuItem Header="Tragwerksmodell visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="TragwerksdatenVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="Tragwerksberechnung" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="TragwerksdatenBerechnen" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="statische Ergebnisse anzeigen" HorizontalAlignment="Left"
+                          Height="20" Width="250" Margin="0,0,0,0" Click="TragwerksberechnungErgebnisse" />
+                <MenuItem Header="statische Ergebnisse visualisieren" HorizontalAlignment="Left" Height="20"
+                          Width="261" Margin="0,0,-11.4,0" Click="TragwerksErgebnisseVisualisieren" />
+            </MenuItem>
+            <Button Height="26" Width="42" VerticalAlignment="Center" HorizontalAlignment="Center" Background="CornflowerBlue"
+                    Click="TragwerksdatenEinlesen">
+                <TextBlock FontWeight="Bold" Height="21" HorizontalAlignment="Left">neu</TextBlock>
+            </Button>
+
+        </Menu>
+        <Menu Grid.Row="0" Grid.Column="2" Height="30"
+              VerticalAlignment="Center" FlowDirection="LeftToRight" Background="Yellow" Margin="0,0,-58,0" >
+            <MenuItem Header="      Wärmeübertragung" Height="30" Width="165" FontWeight="Bold">
+                <MenuItem.Icon>
+                    <Image Source="/Ressourcen/Wandecke.jpg" VerticalAlignment="Center" Margin="0,-5,-20,-5" Height="34" />
+                </MenuItem.Icon>
+
+                <MenuItem Header="Wärmedaten einlesen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmedatenEinlesen" />
+                <MenuItem Header="Wärmedaten editieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmedatenEditieren" />
+                <MenuItem Header="Wärmedaten sichern" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmedatenSichern" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="Wärmedaten anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmedatenAnzeigen" />
+                <MenuItem Header="Wärmedaten visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmedatenVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="stationäre Berechnung" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmedatenBerechnen" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="stationäre Ergebnisse anzeigen" HorizontalAlignment="Left" Height="20" Width="320"
+                          Margin="0,0,0,0" Click="WärmeberechnungErgebnisseAnzeigen" />
+                <MenuItem Header="stationäre Ergebnisse visualisieren" HorizontalAlignment="Left" Height="20"
+                          Width="300" Margin="0,0,0,0" Click="WärmeberechnungErgebnisseVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="instationäre Daten anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="InstationäreDaten" />
+                <MenuItem Header="Anregung visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="WärmeAnregungVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="Eigenlösung berechnen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="EigenlösungWärmeBerechnen" />
+                <MenuItem Header="Eigenlösung anzeigen" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="EigenlösungWärmeAnzeigen" />
+                <MenuItem Header="Eigenlösung visualisieren" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="EigenlösungWärmeVisualisieren" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="instationäre Berechnung" HorizontalAlignment="Left" Height="20" Width="250"
+                          Margin="0,0,0,0" Click="InstationäreBerechnung" />
+                <Separator HorizontalAlignment="Left" Height="4" Width="250" Margin="0,0,-0.2,0" />
+                <MenuItem Header="instationäre Ergebnisse anzeigen" HorizontalAlignment="Left" Height="20" Width="300"
+                          Margin="0,0,0,0" Click="InstationäreErgebnisseAnzeigen" />
+                <MenuItem Header="zeitabhängige Modellzustände visualisieren" HorizontalAlignment="Left" Height="20"
+                          Width="350" Margin="0,0,0,0" Click="InstationäreModellzuständeVisualisieren" />
+                <MenuItem Header="Knotenzeitverläufe visualisieren" HorizontalAlignment="Left" Height="20" Width="300"
+                          Margin="0,0,0,0" Click="KnotenzeitverläufeWärmeVisualisieren" />
+            </MenuItem>
+            <Button Height="26" Width="43" VerticalAlignment="Center" HorizontalAlignment="Left"
+                    Margin="0,0,0,0" Background="Gold"
+                    Click="WärmedatenEinlesen">
+                <TextBlock FontWeight="Bold" Height="21">neu</TextBlock>
+            </Button>
+        </Menu>
+        <!--<DataGrid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                  Name="MatrixGrid" Height="200" Width="400" Margin="10,10,0,0" x:FieldModifier="public" Grid.ColumnSpan="2">
+        </DataGrid>-->
+    </Grid>
+</Window>

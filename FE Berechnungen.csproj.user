@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PublishUrlHistory>C:\Users\karlb\Documents\FE-Berechnungen\</PublishUrlHistory>
+    <InstallUrlHistory />
+    <SupportUrlHistory />
+    <UpdateUrlHistory />
+    <BootstrapperUrlHistory />
+    <ErrorReportUrlHistory />
+    <FallbackCulture>de-DE</FallbackCulture>
+    <VerifyUploadedFiles>false</VerifyUploadedFiles>
+    <ProjectView>ShowAllFiles</ProjectView>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableSecurityDebugging>false</EnableSecurityDebugging>
+    <_LastSelectedProfileId>C:\Users\karlb\source\repos\FE Berechnungen\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="BerechnungsdatenAnzeigen.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Stabwerksberechnung\ModelldatenLesen\ZeitEinflussKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Element2D3Neu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Element3D8Netz.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Element3D8Neu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\ElementKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Knoten3DNetzVariabel.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Knoten3DNetzÄquidistant.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Knoten3DNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\KnotenKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\KnotenlastNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\KnotenNetzVariabel.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\KnotenNetzÄquidistant.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\KnotenNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\LagerKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\LagerNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\LastenKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\MaterialKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\MaterialNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\ModellNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\QuerschnittKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\QuerschnittNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Randbedingung3DBoussinesq.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Tragwerksberechnung\ModelldatenLesen\Randbedingung3DKnoten.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Stabwerksberechnung\Ergebnisse\ErgebnisseVisualisieren.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Stabwerksberechnung\ModelldatenLesen\ModellNeueDaten.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Stabwerksberechnung\ModelldatenAnzeigen\ZeitAnregungVisualisieren.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Wärmeberechnung\ModelldatenLesen\KnotenKeys.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Wärmeberechnung\ModelldatenLesen\KnotenNetzVariabel.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Wärmeberechnung\ModelldatenLesen\KnotenNetzÄquidistant.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Wärmeberechnung\ModelldatenLesen\ModellNeu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Wärmeberechnung\ModelldatenAnzeigen\ZeitAnregungVisualisieren.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Wärmeberechnung\ModelldatenLesen\KnotenKeys.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Wärmeberechnung\ModelldatenLesen\KnotenNetzVariabel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Wärmeberechnung\ModelldatenLesen\KnotenNetzÄquidistant.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+</Project>
