@@ -1,0 +1,36 @@
+ModellName
+Beispiel 3-8 Fachwerk
+
+Raumdimension
+2	2
+
+Knoten
+n1	0	3
+n2	3	3
+n3	3	0
+n4	0	0
+
+Fachwerk
+e1	n1	n2	iso	c1
+e2	n2	n3	iso	c1
+e3	n3	n4	iso	c1
+e4	n4	n1	iso	c1
+e5	n4	n2	iso	c1
+e6	n3	n1	iso	c1
+
+Querschnitt
+c1	0,004
+
+// Id	EModul	Poisson	spez.Masse
+Material
+iso	2,1e8	0	2,5
+
+Knotenlast
+last1	n2	10	0
+last2	n2	0	-10
+
+Lager
+lager1	n4	xy
+lager2	n3	y
+
+end
